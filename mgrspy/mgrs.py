@@ -90,6 +90,11 @@ def toMgrs(latitude, longitude, precision=5):
     @param precision - precision level of MGRS string
     @returns - MGRS coordinate string
     """
+
+    #To avoid precision issues, which appear when using more than 6 decimal places
+    latitude = round(latitude, 6)
+    longitude = round(longitude, 6)
+
     if math.fabs(latitude) > 90:
         raise MgrsException('Latitude outside of valid range (-90 to 90 degrees).')
 
