@@ -646,9 +646,14 @@ def _breakMgrsString(mgrs):
         if precision > 0:
             easting = float(mgrs[idx:idx + precision])
             northing = float(mgrs[idx + precision:])
+
+            multiplier = _computeScale(precision)
+            half_multi = multiplier * 0.5  # added in geotrans3.8
+            easting = easting * multiplier + half_multi
+            northing = northing * multiplier + half_multi
         else:
-            easting = 0
-            northing = 0
+            easting = 0.0
+            northing = 0.0
     else:
         raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
 
@@ -676,3 +681,26 @@ def _latitudeBandMinNorthing(letter):
         raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
 
     return minNorthing, northingOffset
+
+
+def _computeScale(precision):
+    if precision == 0:
+        return 1.0e5
+
+    if precision == 1:
+        return 1.0e4
+
+    if precision == 2:
+        return 1.0e3
+
+    if precision == 3:
+        return 1.0e2
+
+    if precision == 4:
+        return 1.0e1
+
+    if precision == 5:
+        return 1.0e0
+
+    return 1.0e5
+
