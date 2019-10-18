@@ -200,7 +200,7 @@ def _upsToMgrs(hemisphere, easting, northing, precision):
         letters[2] = letters[2] + 1
 
     gridEasting = easting
-    gridEasting = gridEasting - falseEasting;
+    gridEasting = gridEasting - falseEasting
     letters[1] = ltr2LowValue + int(gridEasting / ONEHT)
 
     if easting < TWOMIL:
@@ -429,7 +429,6 @@ def _mgrsString(zone, letters, easting, northing, precision):
     @param precision - precision level of MGRS string
     @returns - MGRS coordinate string
     """
-    mrgs = ''
     if zone:
         tmp = str(zone)
         mgrs = tmp.zfill(3 - len(tmp))
