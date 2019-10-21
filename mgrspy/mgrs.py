@@ -27,10 +27,17 @@ __copyright__ = '(C) 2016 Boundless, http://boundlessgeo.com'
 __revision__ = '$Format:%H$'
 
 
+import os
 import math
 import itertools
+import logging
 
 from osgeo import osr
+
+LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'WARNING').upper()
+FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
+logging.basicConfig(level=LOG_LEVEL, format=FORMAT)
+log = logging.getLogger(__name__)
 
 BADLY_FORMED = \
     'An MGRS string error: string too long, too short, or badly formed'
@@ -131,10 +138,14 @@ def toWgs(mgrs):
     @param mgrs - MGRS coordinate string
     @returns - tuple containning latitude and longitude values
     """
+    log.debug('in: {0}'.format(mgrs))
+
     if _checkZone(mgrs):
         zone, hemisphere, easting, northing = _mgrsToUtm(mgrs)
     else:
         zone, hemisphere, easting, northing = _mgrsToUps(mgrs)
+
+    log.debug('e: {0}, n: {1}'.format(easting, northing))
 
     epsg = _epsgForUtm(zone, hemisphere)
     src = osr.SpatialReference()
@@ -143,6 +154,8 @@ def toWgs(mgrs):
     dst.ImportFromEPSG(4326)
     ct = osr.CoordinateTransformation(src, dst)
     longitude, latitude, z = ct.TransformPoint(easting, northing)
+
+    log.debug('lat: {0}, lon: {1}'.format(latitude, longitude))
 
     return latitude, longitude
 
@@ -450,6 +463,8 @@ def _mgrsString(zone, letters, easting, northing, precision):
         northing = 99999.0
     mgrs += str(int(northing)).rjust(5, '0')[:precision]
 
+    log.debug('mgrs: {0}'.format(mgrs))
+
     return mgrs
 
 
@@ -658,6 +673,12 @@ def _breakMgrsString(mgrs):
             northing = 0.0
     else:
         raise MgrsException(BADLY_FORMED)
+
+    log.debug(
+        'zone: "{0}", letters: "{1}", '
+        'easting: "{2}": northing "{3}", precision: "{4}" '.format(
+            zone, letters, easting, northing, precision)
+    )
 
     return zone, letters, easting, northing, precision
 
