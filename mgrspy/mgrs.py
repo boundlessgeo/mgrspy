@@ -32,6 +32,8 @@ import itertools
 
 from osgeo import osr
 
+BADLY_FORMED = \
+    'An MGRS string error: string too long, too short, or badly formed'
 
 ALPHABET = {l: c for c, l in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
 
@@ -232,7 +234,7 @@ def _mgrsToUps(mgrs):
     zone, letters, easting, northing, precision = _breakMgrsString(mgrs)
 
     if zone != 0:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     if letters[0] >= ALPHABET['Y']:
         hemisphere = 'N'
@@ -256,7 +258,7 @@ def _mgrsToUps(mgrs):
     # of valid second letter values. Also check that the third letter is valid
     invalid = [ALPHABET['D'], ALPHABET['E'], ALPHABET['M'], ALPHABET['N'], ALPHABET['V'], ALPHABET['W']]
     if (letters[1] < ltr2LowValue) or (letters[1] > ltr2HighValue) or (letters[1] in [invalid]) or (letters[2] > ltr3HighValue):
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     gridNorthing = float(letters[2] * ONEHT + falseNorthing)
     if letters[2] > ALPHABET['I']:
@@ -372,10 +374,10 @@ def _mgrsToUtm(mgrs):
     """
     zone, letters, easting, northing, precision = _breakMgrsString(mgrs)
     if zone == 0:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     if letters == ALPHABET['X'] and zone in [32, 34, 36]:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     if letters[0] < ALPHABET['N']:
         hemisphere = 'S'
@@ -387,7 +389,7 @@ def _mgrsToUtm(mgrs):
     # Check that the second letter of the MGRS string is within the range
     # of valid second letter values. Also check that the third letter is valid
     if (letters[1] < ltr2LowValue) or (letters[1] > ltr2HighValue) or (letters[2] > ALPHABET['V']):
-        raise  MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     rowLetterNorthing = float(letters[2] * ONEHT)
     gridEasting = float((letters[1] - ltr2LowValue + 1) * ONEHT)
@@ -588,7 +590,7 @@ def _checkZone(mgrs):
     if count <= 2:
         return count > 0
     else:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
 
 def _breakMgrsString(mgrs):
@@ -605,11 +607,11 @@ def _breakMgrsString(mgrs):
         if count > 0:
             zone = int(mgrs[:2])
             if zone < 1 or zone > 60:
-                raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+                raise MgrsException(BADLY_FORMED)
         else:
             zone = 0
     else:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     idx = count
     # MGRS letters
@@ -621,23 +623,23 @@ def _breakMgrsString(mgrs):
         letters = []
         ch = ord(mgrs[idx:idx + 1].upper()) - a
         if ch in invalid:
-            raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+            raise MgrsException(BADLY_FORMED)
         idx += 1
         letters.append(ch)
 
         ch = ord(mgrs[idx:idx + 1].upper()) - a
         if ch in invalid:
-            raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+            raise MgrsException(BADLY_FORMED)
         idx += 1
         letters.append(ch)
 
         ch = ord(mgrs[idx:idx + 1].upper()) - a
         if ch in invalid:
-            raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+            raise MgrsException(BADLY_FORMED)
         idx += 1
         letters.append(ch)
     else:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     # Easting and Northing
     count = sum(1 for c in itertools.takewhile(str.isdigit, itertools.islice(mgrs, idx, None)))
@@ -655,7 +657,7 @@ def _breakMgrsString(mgrs):
             easting = 0.0
             northing = 0.0
     else:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     return zone, letters, easting, northing, precision
 
@@ -678,7 +680,7 @@ def _latitudeBandMinNorthing(letter):
         minNorthing = LATITUDE_BANDS[letter - 4][1]
         northingOffset = LATITUDE_BANDS[letter - 4][4]
     else:
-        raise MgrsException('An MGRS string error: string too long, too short, or badly formed')
+        raise MgrsException(BADLY_FORMED)
 
     return minNorthing, northingOffset
 
