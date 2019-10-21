@@ -138,6 +138,7 @@ def toWgs(mgrs):
     @param mgrs - MGRS coordinate string
     @returns - tuple containning latitude and longitude values
     """
+    mgrs = _clean_mgrs_str(mgrs)
     log.debug('in: {0}'.format(mgrs))
 
     if _checkZone(mgrs):
@@ -600,7 +601,7 @@ def _checkZone(mgrs):
     @param mgrs - MGRS coordinate string
     @returns - True if zone is given, False otherwise
     """
-    mgrs = mgrs.lstrip()
+    mgrs = _clean_mgrs_str(mgrs)
     count = sum(1 for c in itertools.takewhile(str.isdigit, mgrs))
     if count <= 2:
         return count > 0
@@ -615,7 +616,7 @@ def _breakMgrsString(mgrs):
     @returns - tuple containing MGRS string componets: UTM zone,
     MGRS coordinate string letters, easting, northing and precision
     """
-    mgrs = mgrs.lstrip()
+    mgrs = _clean_mgrs_str(mgrs)
     # Number of zone digits
     count = sum(1 for c in itertools.takewhile(str.isdigit, mgrs))
     if count <= 2:
@@ -726,4 +727,36 @@ def _computeScale(precision):
         return 1.0e0
 
     return 1.0e5
+
+
+def _clean_mgrs_str(s):
+    """
+    Clean up MGRS user-input string.
+    :param s: MGRS input string
+    :return: Cleaned and stripped string as Unicode
+    """
+    log.debug('in: {0}'.format(s))
+    if str(type(s)) not in ["<class 'str'>",
+                            "<class 'bytes'>",
+                            "<type 'str'>",
+                            "<type 'unicode'>"]:
+        raise MgrsException(BADLY_FORMED)
+
+    # convert to unicode, so str.isdigit, etc work in Py2
+    if str(type(s)) == "<class 'bytes'>":  # Py 3
+        s = s.decode()  # <class 'str'> as UTF-8
+    elif str(type(s)) == "<type 'str'>":  # Py 2
+        s = unicode(s, encoding='UTF-8')  # <type 'unicode'>
+
+    # strip whitespace
+    s = s.strip().replace(' ', '')
+
+    # prepend 0 to input of single-digit zone
+    count = sum(1 for c in itertools.takewhile(str.isdigit, s))
+    if count not in [1, 2]:
+        raise MgrsException(BADLY_FORMED)
+    if count == 1:
+        s = u'0' + s
+    log.debug('out: {0}'.format(s))
+    return s
 
