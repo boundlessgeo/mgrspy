@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-
 """
 ***************************************************************************
     mgrs.py
     ---------------------
-    Date                 : August 2016
+    Date                 : August 2016, October 2019
+    Author               : Alex Bruy, Planet Federal
     Copyright            : (C) 2016 Boundless, http://boundlessgeo.com
+                         : (C) 2019 Planet Inc, https://planet.com
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -17,13 +18,11 @@
 """
 from builtins import str
 from builtins import range
-
-__author__ = 'Alexander Bruy'
-__date__ = 'August 2016'
-__copyright__ = '(C) 2016 Boundless, http://boundlessgeo.com'
+__author__ = 'Planet Federal'
+__date__ = 'October 2019'
+__copyright__ = '(C) 2019 Planet Inc, https://planet.com'
 
 # This will get replaced with a git SHA1 when you do a git archive
-
 __revision__ = '$Format:%H$'
 
 
