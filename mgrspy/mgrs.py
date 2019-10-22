@@ -42,6 +42,10 @@ log = logging.getLogger(__name__)
 BADLY_FORMED = \
     'An MGRS string error: string too long, too short, or badly formed'
 
+# Whether to add the extra half-multiplier to UTM coords per precision,
+# added in geotrans3.8
+GEOTRANS_HALFMULTI = False
+
 ALPHABET = {l: c for c, l in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}
 
 ONEHT = 100000.0
@@ -672,9 +676,13 @@ def _breakMgrsString(mgrs):
             northing = float(mgrs[idx + precision:])
 
             multiplier = _computeScale(precision)
-            half_multi = multiplier * 0.5  # added in geotrans3.8
-            easting = easting * multiplier + half_multi
-            northing = northing * multiplier + half_multi
+            easting = easting * multiplier
+            northing = northing * multiplier
+
+            if GEOTRANS_HALFMULTI:
+                half_multi = multiplier * 0.5  # added in geotrans3.8
+                easting += half_multi
+                northing += half_multi
         else:
             easting = 0.0
             northing = 0.0
