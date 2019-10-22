@@ -61,11 +61,16 @@ MAX_EAST_NORTH = 4000000
 # 3rd letter range - high (UPS),
 # false easting based on 2nd letter,
 # false northing based on 3rd letter
-UPS_CONSTANTS = {0: (ALPHABET['A'], ALPHABET['J'], ALPHABET['Z'], ALPHABET['Z'], 800000.0, 800000.0),
-                 1: (ALPHABET['B'], ALPHABET['A'], ALPHABET['R'], ALPHABET['Z'], 2000000.0, 800000.0),
-                 2: (ALPHABET['Y'], ALPHABET['J'], ALPHABET['Z'], ALPHABET['P'], 800000.0, 1300000.0),
-                 3: (ALPHABET['Z'], ALPHABET['A'], ALPHABET['J'], ALPHABET['P'], 2000000.0, 1300000.0)
-                }
+UPS_CONSTANTS = {
+    0: (ALPHABET['A'], ALPHABET['J'], ALPHABET['Z'], ALPHABET['Z'],
+        800000.0, 800000.0),
+    1: (ALPHABET['B'], ALPHABET['A'], ALPHABET['R'], ALPHABET['Z'],
+        2000000.0, 800000.0),
+    2: (ALPHABET['Y'], ALPHABET['J'], ALPHABET['Z'], ALPHABET['P'],
+        800000.0, 1300000.0),
+    3: (ALPHABET['Z'], ALPHABET['A'], ALPHABET['J'], ALPHABET['P'],
+        2000000.0, 1300000.0)
+}
 
 # letter, minimum northing, upper latitude, lower latitude, northing offset
 LATITUDE_BANDS = [(ALPHABET['C'], 1100000.0, -72.0, -80.5, 0.0),
@@ -104,15 +109,18 @@ def toMgrs(latitude, longitude, precision=5):
     @returns - MGRS coordinate string
     """
 
-    #To avoid precision issues, which appear when using more than 6 decimal places
+    # To avoid precision issues, which appear when using more than
+    # 6 decimal places
     latitude = round(latitude, 6)
     longitude = round(longitude, 6)
 
     if math.fabs(latitude) > 90:
-        raise MgrsException('Latitude outside of valid range (-90 to 90 degrees).')
+        raise MgrsException(
+            'Latitude outside of valid range (-90 to 90 degrees).')
 
     if (longitude < -180) or (longitude > 360):
-        raise MgrsException('Longitude outside of valid range (-180 to 360 degrees).')
+        raise MgrsException(
+            'Longitude outside of valid range (-180 to 360 degrees).')
 
     if (precision < 0) or (precision > MAX_PRECISION):
         raise MgrsException('The precision must be between 0 and 5 inclusive.')
@@ -130,7 +138,8 @@ def toMgrs(latitude, longitude, precision=5):
         mgrs = _upsToMgrs(hemisphere, x, y, precision)
     else:
         # Convert to UTM
-        mgrs = _utmToMgrs(zone, hemisphere, latitude, longitude, x, y, precision)
+        mgrs = _utmToMgrs(
+            zone, hemisphere, latitude, longitude, x, y, precision)
 
     return mgrs
 
@@ -179,10 +188,14 @@ def _upsToMgrs(hemisphere, easting, northing, precision):
         raise MgrsException('Invalid hemisphere ("N" or "S").')
 
     if (easting < MIN_EAST_NORTH) or (easting > MAX_EAST_NORTH):
-        raise MgrsException('Easting outside of valid range (100,000 to 900,000 meters for UTM, 0 to 4,000,000 meters for UPS).')
+        raise MgrsException(
+            'Easting outside of valid range (100,000 to 900,000 meters '
+            'for UTM, 0 to 4,000,000 meters for UPS).')
 
     if (northing < MIN_EAST_NORTH) or (northing > MAX_EAST_NORTH):
-        raise MgrsException('Northing outside of valid range (0 to 10,000,000 meters for UTM, 0 to 4,000,000 meters for UPS).')
+        raise MgrsException(
+            'Northing outside of valid range (0 to 10,000,000 meters for UTM, '
+            '0 to 4,000,000 meters for UPS).')
 
     if (precision < 0) or (precision > MAX_PRECISION):
         raise MgrsException('The precision must be between 0 and 5 inclusive.')
@@ -274,8 +287,18 @@ def _mgrsToUps(mgrs):
 
     # Check that the second letter of the MGRS string is within the range
     # of valid second letter values. Also check that the third letter is valid
-    invalid = [ALPHABET['D'], ALPHABET['E'], ALPHABET['M'], ALPHABET['N'], ALPHABET['V'], ALPHABET['W']]
-    if (letters[1] < ltr2LowValue) or (letters[1] > ltr2HighValue) or (letters[1] in [invalid]) or (letters[2] > ltr3HighValue):
+    invalid = [
+        ALPHABET['D'],
+        ALPHABET['E'],
+        ALPHABET['M'],
+        ALPHABET['N'],
+        ALPHABET['V'],
+        ALPHABET['W']
+    ]
+    if (letters[1] < ltr2LowValue) \
+            or (letters[1] > ltr2HighValue) \
+            or (letters[1] in [invalid]) \
+            or (letters[2] > ltr3HighValue):
         raise MgrsException(BADLY_FORMED)
 
     gridNorthing = float(letters[2] * ONEHT + falseNorthing)
@@ -308,7 +331,8 @@ def _mgrsToUps(mgrs):
     return zone, hemisphere, easting, northing
 
 
-def _utmToMgrs(zone, hemisphere, latitude, longitude, easting, northing, precision):
+def _utmToMgrs(zone, hemisphere, latitude, longitude,
+               easting, northing, precision):
     """ Calculates an MGRS coordinate string based on the UTM zone, latitude,
     easting and northing values.
 
@@ -373,7 +397,8 @@ def _utmToMgrs(zone, hemisphere, latitude, longitude, easting, northing, precisi
     if letters[2] > ALPHABET['N']:
         letters[2] += 1
 
-    if ((letters[0] == ALPHABET['V']) and (zone == 31)) and (easting == 500000.0):
+    if ((letters[0] == ALPHABET['V']) and (zone == 31)) \
+            and (easting == 500000.0):
         easting = easting - 1.0  # Substract 1 meter
 
     letters[1] = ltr2LowValue + int((easting / ONEHT) - 1)
@@ -406,7 +431,9 @@ def _mgrsToUtm(mgrs):
 
     # Check that the second letter of the MGRS string is within the range
     # of valid second letter values. Also check that the third letter is valid
-    if (letters[1] < ltr2LowValue) or (letters[1] > ltr2HighValue) or (letters[2] > ALPHABET['V']):
+    if (letters[1] < ltr2LowValue) \
+            or (letters[1] > ltr2HighValue) \
+            or (letters[2] > ALPHABET['V']):
         raise MgrsException(BADLY_FORMED)
 
     rowLetterNorthing = float(letters[2] * ONEHT)
@@ -456,7 +483,9 @@ def _mgrsString(zone, letters, easting, northing, precision):
         mgrs = '  '
 
     for i in range(3):
-        mgrs += list(ALPHABET.keys())[list(ALPHABET.values()).index(letters[i])]
+        mgrs += list(ALPHABET.keys())[
+            list(ALPHABET.values()).index(letters[i])
+        ]
 
     easting = math.fmod(easting + 1e-8, 100000.0)
     if easting >= 99999.5:
@@ -481,10 +510,12 @@ def _epsgForWgs(latitude, longitude):
     """
 
     if math.fabs(latitude) > 90:
-        raise MgrsException('Latitude outside of valid range (-90 to 90 degrees).')
+        raise MgrsException(
+            'Latitude outside of valid range (-90 to 90 degrees).')
 
     if longitude < -180 or longitude > 360:
-        return MgrsException('Longitude outside of valid range (-180 to 360 degrees).')
+        return MgrsException(
+            'Longitude outside of valid range (-180 to 360 degrees).')
 
     # hemisphere
     if latitude < 0:
@@ -641,7 +672,8 @@ def _breakMgrsString(mgrs):
 
     idx = count
     # MGRS letters
-    count = sum(1 for c in itertools.takewhile(str.isalpha, itertools.islice(mgrs, idx, None)))
+    count = sum(1 for _ in itertools.takewhile(
+        str.isalpha, itertools.islice(mgrs, idx, None)))
     if count == 3:
         a = ord('A')
         invalid = [ALPHABET['I'], ALPHABET['O']]
@@ -668,7 +700,8 @@ def _breakMgrsString(mgrs):
         raise MgrsException(BADLY_FORMED)
 
     # Easting and Northing
-    count = sum(1 for c in itertools.takewhile(str.isdigit, itertools.islice(mgrs, idx, None)))
+    count = sum(1 for _ in itertools.takewhile(
+        str.isdigit, itertools.islice(mgrs, idx, None)))
     if count <= 10 and count % 2 == 0:
         precision = int(count / 2)
         if precision > 0:
