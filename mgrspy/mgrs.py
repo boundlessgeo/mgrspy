@@ -607,8 +607,11 @@ def _checkZone(mgrs):
     @param mgrs - MGRS coordinate string
     @returns - True if zone is given, False otherwise
     """
-    mgrs = _clean_mgrs_str(mgrs)
-    count = sum(1 for c in itertools.takewhile(str.isdigit, mgrs))
+    mgrs = _clean_mgrs_str(mgrs)  # should always set two zone digits, even UPS
+    count = sum(1 for _ in itertools.takewhile(str.isdigit, mgrs))
+    zone = int(mgrs[:count])
+    if zone == 0:
+        return False
     if count <= 2:
         return count > 0
     else:
@@ -622,16 +625,13 @@ def _breakMgrsString(mgrs):
     @returns - tuple containing MGRS string componets: UTM zone,
     MGRS coordinate string letters, easting, northing and precision
     """
-    mgrs = _clean_mgrs_str(mgrs)
+    mgrs = _clean_mgrs_str(mgrs)  # should always set two zone digits, even UPS
     # Number of zone digits
-    count = sum(1 for c in itertools.takewhile(str.isdigit, mgrs))
-    if count <= 2:
-        if count > 0:
-            zone = int(mgrs[:2])
-            if zone < 1 or zone > 60:
-                raise MgrsException(BADLY_FORMED)
-        else:
-            zone = 0
+    count = sum(1 for _ in itertools.takewhile(str.isdigit, mgrs))
+    if count == 2:
+        zone = int(mgrs[:2])
+        if zone < 0 or zone > 60:
+            raise MgrsException(BADLY_FORMED)
     else:
         raise MgrsException(BADLY_FORMED)
 
@@ -758,11 +758,12 @@ def _clean_mgrs_str(s):
     s = s.strip().replace(' ', '')
 
     # prepend 0 to input of single-digit zone
-    count = sum(1 for c in itertools.takewhile(str.isdigit, s))
-    if count not in [1, 2]:
-        raise MgrsException(BADLY_FORMED)
-    if count == 1:
+    count = sum(1 for _ in itertools.takewhile(str.isdigit, s))
+    if count == 0:
+        s = u'00' + s
+    elif count == 1:
         s = u'0' + s
+    elif count > 2:
+        raise MgrsException(BADLY_FORMED)
     log.debug('out: {0}'.format(s))
     return s
-
