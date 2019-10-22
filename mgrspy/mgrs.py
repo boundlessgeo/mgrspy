@@ -503,17 +503,17 @@ def _epsgForWgs(latitude, longitude):
             zone = 1
 
         # Handle UTM special cases
-        if latitude >= 56.0 and latitude < 64.0 and longitude >= 3.0 and longitude < 12.0:
+        if 56.0 <= latitude < 64.0 and 3.0 <= longitude < 12.0:
             zone = 32
 
-        if latitude >= 72.0 and latitude < 84.0:
-            if longitude >= 0.0 and longitude < 9.0:
+        if 72.0 <= latitude < 84.0:
+            if 0.0 <= longitude < 9.0:
                 zone = 31
-            elif longitude >= 9.0 and longitude < 21.0:
+            elif 9.0 <= longitude < 21.0:
                 zone = 33
-            elif longitude >= 21.0 and longitude < 33.0:
+            elif 21.0 <= longitude < 33.0:
                 zone = 35
-            elif longitude >= 33.0 and longitude < 42.0:
+            elif 33.0 <= longitude < 42.0:
                 zone = 37
 
     # North or South hemisphere
@@ -594,9 +594,9 @@ def _latitudeLetter(latitude):
     @param latitude - latitude value
     @returns - latitude band letter
     """
-    if latitude >= 72 and latitude < 84.5:
+    if 72 <= latitude < 84.5:
         return ALPHABET['X']
-    elif latitude > -80.5 and latitude < 72:
+    elif -80.5 < latitude < 72:
         idx = int(((latitude + 80.0) / 8.0) + 1.0e-12)
         return LATITUDE_BANDS[idx][0]
 
@@ -698,13 +698,13 @@ def _latitudeBandMinNorthing(letter):
     @returns - tuple containing minimum northing and northing offset
     for that letter
     """
-    if letter >= ALPHABET['C'] and letter <= ALPHABET['H']:
+    if ALPHABET['C'] <= letter <= ALPHABET['H']:
         minNorthing = LATITUDE_BANDS[letter - 2][1]
         northingOffset = LATITUDE_BANDS[letter - 2][4]
-    elif letter >= ALPHABET['J'] and letter <= ALPHABET['N']:
+    elif ALPHABET['J'] <= letter <= ALPHABET['N']:
         minNorthing = LATITUDE_BANDS[letter - 3][1]
         northingOffset = LATITUDE_BANDS[letter - 3][4]
-    elif letter >= ALPHABET['P'] and letter <= ALPHABET['X']:
+    elif ALPHABET['P'] <= letter <= ALPHABET['X']:
         minNorthing = LATITUDE_BANDS[letter - 4][1]
         northingOffset = LATITUDE_BANDS[letter - 4][4]
     else:
@@ -716,22 +716,16 @@ def _latitudeBandMinNorthing(letter):
 def _computeScale(precision):
     if precision == 0:
         return 1.0e5
-
-    if precision == 1:
+    elif precision == 1:
         return 1.0e4
-
-    if precision == 2:
+    elif precision == 2:
         return 1.0e3
-
-    if precision == 3:
+    elif precision == 3:
         return 1.0e2
-
-    if precision == 4:
+    elif precision == 4:
         return 1.0e1
-
-    if precision == 5:
+    elif precision == 5:
         return 1.0e0
-
     return 1.0e5
 
 
