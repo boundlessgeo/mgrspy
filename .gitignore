@@ -2,3 +2,6 @@
 *.*~
 *~
 *.diff
+build
+dist
+mgrspy.egg-info
