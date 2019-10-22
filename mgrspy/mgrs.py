@@ -27,6 +27,7 @@ __revision__ = '$Format:%H$'
 
 
 import os
+import re
 import math
 import itertools
 import logging
@@ -789,7 +790,7 @@ def _clean_mgrs_str(s):
         s = unicode(s, encoding='UTF-8')  # <type 'unicode'>
 
     # strip whitespace
-    s = s.strip().replace(' ', '')
+    s = re.sub(r'\s+', '', s)
 
     # prepend 0 to input of single-digit zone
     count = sum(1 for _ in itertools.takewhile(str.isdigit, s))
