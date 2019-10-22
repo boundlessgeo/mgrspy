@@ -123,6 +123,11 @@ class UtilsTest(unittest.TestCase):
         self.assertFalse(mgrs._checkZone('YYB495491'), False)
         self.assertFalse(mgrs._checkZone('YYB'), False)
 
+        self.assertFalse(mgrs._checkZone('00YYB4951249156'), False)
+        self.assertFalse(mgrs._checkZone('00YYB4951249156'), False)
+        self.assertFalse(mgrs._checkZone('0YYB495491'), False)
+        self.assertFalse(mgrs._checkZone('0YYB'), False)
+
         # zone with 3 digits
         with self.assertRaises(mgrs.MgrsException):
             mgrs._checkZone('181SUJ2338308450')
@@ -139,8 +144,8 @@ class UtilsTest(unittest.TestCase):
         zone, letters, easting, northing, precision = mgrs._breakMgrsString('18SUJ233084')
         self.assertEqual(zone, 18)
         self.assertEqual(letters, [18, 20, 9])
-        self.assertEqual(easting, 233.0)
-        self.assertEqual(northing, 84.0)
+        self.assertEqual(easting, 23300.0)
+        self.assertEqual(northing, 8400.0)
         self.assertEqual(precision, 3)
 
         zone, letters, easting, northing, precision = mgrs._breakMgrsString('18SUJ')

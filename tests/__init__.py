@@ -25,13 +25,13 @@ __revision__ = '$Format:%H$'
 
 import unittest
 
-from tests.mrgstest import MgrsTest
+from tests.mgrstest import MgrsTest
 from tests.utilstest import UtilsTest
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTests(unittest.makeSuite(UtilsTest, 'test'))
-    suite.addTests(unittest.makeSuite(MgrsTest, 'test'))
+    utils_suite = unittest.TestLoader().loadTestsFromTestCase(UtilsTest)
+    mgrs_suite = unittest.TestLoader().loadTestsFromTestCase(MgrsTest)
+    test_suite = unittest.TestSuite([utils_suite, mgrs_suite])
 
-    return suite
+    return test_suite

@@ -86,8 +86,8 @@ class MgrsTest(unittest.TestCase):
         self.assertAlmostEqual(lon, -94.20734290469866)
 
         lat, lon = mgrs.toWgs('15TVG000497')
-        self.assertAlmostEqual(lat, 41.54988934568494)
-        self.assertAlmostEqual(lon, -94.19904899028688)
+        self.assertAlmostEqual(lat, 41.99296420261856)
+        self.assertAlmostEqual(lon, -94.20732996948512)
 
         lat, lon = mgrs.toWgs('15TVG')
         self.assertAlmostEqual(lat, 41.545413660388625)
@@ -104,3 +104,7 @@ class MgrsTest(unittest.TestCase):
         lat, lon = mgrs.toWgs('38SMG1233767880')
         self.assertAlmostEqual(lat, 37.65389907949628)
         self.assertAlmostEqual(lon, 44.00619523636414)
+
+        lat, lon = mgrs.toWgs('4Q FJ 1234 6789')
+        self.assertAlmostEqual(lat, 21.409796984165713)
+        self.assertAlmostEqual(lon, -157.91612940829197)
