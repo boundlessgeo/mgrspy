@@ -564,6 +564,9 @@ def _gridValues(zone):
     if not setNumber:
         setNumber = 6
 
+    ltr2LowValue = None
+    ltr2HighValue = None
+
     if setNumber in [1, 4]:
         ltr2LowValue = ALPHABET['A']
         ltr2HighValue = ALPHABET['H']
@@ -573,6 +576,9 @@ def _gridValues(zone):
     elif setNumber in [3, 6]:
         ltr2LowValue = ALPHABET['S']
         ltr2HighValue = ALPHABET['Z']
+
+    if ltr2LowValue is None or ltr2HighValue is None:
+        raise MgrsException(BADLY_FORMED)
 
     if setNumber % 2:
         patternOffset = 0.0
