@@ -54,7 +54,7 @@ string:
 ::
 
     >>> mgrs.toWgs('15TVG000497')
-    (41.54988934568494, -94.19904899028688)
+    (41.99296420261856, -94.20732996948512)
 
 If the passed MGRS coordinate string is malformed, or in case of errors, an
  ``MgrsException`` will be raised.
