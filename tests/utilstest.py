@@ -72,8 +72,7 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(epsg, 32701)
 
         with self.assertRaises(mgrs.MgrsException):
-            hemisphere, zone, epsg = mgrs._epsgForWgs(-95, 60)
-
+            _, _, _ = mgrs._epsgForWgs(-95, 60)
 
     def testEpsgFromUtmParameters(self):
         epsg = mgrs._epsgForUtm(31, 'N')
@@ -102,12 +101,11 @@ class UtilsTest(unittest.TestCase):
 
         # invaid hemisphere
         with self.assertRaises(mgrs.MgrsException):
-            epsg = mgrs._epsgForUtm(31, 'K')
+            _ = mgrs._epsgForUtm(31, 'K')
 
         # invaid zone
         with self.assertRaises(mgrs.MgrsException):
-            epsg = mgrs._epsgForUtm(62, 'S')
-
+            _ = mgrs._epsgForUtm(62, 'S')
 
     def testCheckZone(self):
         self.assertTrue(mgrs._checkZone('02HKK5607125582'), True)
@@ -132,44 +130,49 @@ class UtilsTest(unittest.TestCase):
         with self.assertRaises(mgrs.MgrsException):
             mgrs._checkZone('181SUJ2338308450')
 
-
     def testMgrsStringBreak(self):
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('18SUJ2338308450')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('18SUJ2338308450')
         self.assertEqual(zone, 18)
         self.assertEqual(letters, [18, 20, 9])
         self.assertEqual(easting, 23383.0)
         self.assertEqual(northing, 8450.0)
         self.assertEqual(precision, 5)
 
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('18SUJ233084')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('18SUJ233084')
         self.assertEqual(zone, 18)
         self.assertEqual(letters, [18, 20, 9])
         self.assertEqual(easting, 23300.0)
         self.assertEqual(northing, 8400.0)
         self.assertEqual(precision, 3)
 
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('18SUJ')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('18SUJ')
         self.assertEqual(zone, 18)
         self.assertEqual(letters, [18, 20, 9])
         self.assertEqual(easting, 0.0)
         self.assertEqual(northing, 0.0)
         self.assertEqual(precision, 0)
 
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('  YYB4951249156')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('  YYB4951249156')
         self.assertEqual(zone, 0)
         self.assertEqual(letters, [24, 24, 1])
         self.assertEqual(easting, 49512.0)
         self.assertEqual(northing, 49156.0)
         self.assertEqual(precision, 5)
 
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('    YYB4951249156')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('    YYB4951249156')
         self.assertEqual(zone, 0)
         self.assertEqual(letters, [24, 24, 1])
         self.assertEqual(easting, 49512.0)
         self.assertEqual(northing, 49156.0)
         self.assertEqual(precision, 5)
 
-        zone, letters, easting, northing, precision = mgrs._breakMgrsString('YYB4951249156')
+        zone, letters, easting, northing, precision = \
+            mgrs._breakMgrsString('YYB4951249156')
         self.assertEqual(zone, 0)
         self.assertEqual(letters, [24, 24, 1])
         self.assertEqual(easting, 49512.0)
