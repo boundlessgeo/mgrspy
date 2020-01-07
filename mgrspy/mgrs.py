@@ -366,7 +366,9 @@ def _utmToMgrs(zone, hemisphere, latitude, longitude,
     """
     # FIXME: do we really need this?
     # Special check for rounding to (truncated) eastern edge of zone 31V
-    # if (zone == 31) and (((latitude >= 56.0) and (latitude < 64.0)) and ((longitude >= 3.0) or (easting >= 500000.0))):
+    # if (zone == 31) \
+    #         and (((latitude >= 56.0) and (latitude < 64.0))
+    #              and ((longitude >= 3.0) or (easting >= 500000.0))):
     #    # Reconvert to UTM zone 32
     #    override = 32
     #    lat = int(latitude)
@@ -379,11 +381,13 @@ def _utmToMgrs(zone, hemisphere, latitude, longitude,
     #        if (zone - 2 <= override) and (override <= zone + 2):
     #            zone = override
     #        else:
-    #            raise MgrsException('Zone outside of valid range (1 to 60) and within 1 of "natural" zone')
+    #            raise MgrsException('Zone outside of valid range (1 to 60) '
+    #                                'and within 1 of "natural" zone')
     #    elif (zone - 1 <= override) and (override <= zone + 1):
     #        zone = override
     #    else:
-    #        raise MgrsException('Zone outside of valid range (1 to 60) and within 1 of "natural" zone')
+    #        raise MgrsException('Zone outside of valid range (1 to 60) and '
+    #                            'within 1 of "natural" zone')
     #
     #    epsg = _epsgForUtm(zone, hemisphere)
     #
@@ -659,7 +663,7 @@ def _checkZone(mgrs):
     """ Checks if MGRS coordinate string contains UTM zone definition
 
     @param mgrs - MGRS coordinate string
-    @returns - True if zone is given, False otherwise
+    @returns - True if zone is given, False otherwise (or for UPS)
     """
     mgrs = _clean_mgrs_str(mgrs)  # should always set two zone digits, even UPS
     count = sum(1 for _ in itertools.takewhile(str.isdigit, mgrs))
