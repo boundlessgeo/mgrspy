@@ -32,7 +32,7 @@ import math
 import itertools
 import logging
 
-from osgeo import osr
+from pyproj import Transformer, CRS
 
 LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'WARNING').upper()
 FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
@@ -99,6 +99,11 @@ class MgrsException(Exception):
     pass
 
 
+def _log_crs(crs):
+    log.debug('proj epsg: {}'.format(crs.to_epsg()))
+    log.debug('proj:\n{}'.format(crs.to_wkt(pretty=True)))
+
+
 def toMgrs(latitude, longitude, precision=5):
     """ Converts geodetic (latitude and longitude) coordinates to an MGRS
     coordinate string, according to the current ellipsoid parameters.
@@ -126,12 +131,17 @@ def toMgrs(latitude, longitude, precision=5):
         raise MgrsException('The precision must be between 0 and 5 inclusive.')
 
     hemisphere, zone, epsg = _epsgForWgs(latitude, longitude)
-    src = osr.SpatialReference()
-    src.ImportFromEPSG(4326)
-    dst = osr.SpatialReference()
-    dst.ImportFromEPSG(epsg)
-    ct = osr.CoordinateTransformation(src, dst)
-    x, y, z = ct.TransformPoint(longitude, latitude)
+    utm = (zone != 61)
+
+    crs_src = CRS.from_epsg(4326)
+    _log_crs(crs_src)
+    crs_dst = CRS.from_epsg(epsg)
+    _log_crs(crs_dst)
+    ct = Transformer.from_crs(crs_src, crs_dst, always_xy=utm)
+    if utm:
+        x, y = ct.transform(longitude, latitude)
+    else:
+        y, x = ct.transform(latitude, longitude)
 
     if (latitude < -80) or (latitude > 84):
         # Convert to UPS
@@ -154,7 +164,8 @@ def toWgs(mgrs):
     mgrs = _clean_mgrs_str(mgrs)
     log.debug('in: {0}'.format(mgrs))
 
-    if _checkZone(mgrs):
+    utm = _checkZone(mgrs)
+    if utm:
         zone, hemisphere, easting, northing = _mgrsToUtm(mgrs)
     else:
         zone, hemisphere, easting, northing = _mgrsToUps(mgrs)
@@ -162,13 +173,18 @@ def toWgs(mgrs):
     log.debug('e: {0}, n: {1}'.format(easting, northing))
 
     epsg = _epsgForUtm(zone, hemisphere)
-    src = osr.SpatialReference()
-    src.ImportFromEPSG(epsg)
-    dst = osr.SpatialReference()
-    dst.ImportFromEPSG(4326)
-    ct = osr.CoordinateTransformation(src, dst)
-    longitude, latitude, z = ct.TransformPoint(easting, northing)
 
+    crs_src = CRS.from_epsg(epsg)
+    _log_crs(crs_src)
+    crs_dst = CRS.from_epsg(4326)
+    _log_crs(crs_dst)
+    ct = Transformer.from_crs(crs_src, crs_dst, always_xy=utm)
+    if utm:
+        longitude, latitude = ct.transform(easting, northing)
+    else:
+        latitude, longitude = ct.transform(northing, easting)
+
+    # Note static x, y axis order for output
     log.debug('lat: {0}, lon: {1}'.format(latitude, longitude))
 
     return latitude, longitude
