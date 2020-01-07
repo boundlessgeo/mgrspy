@@ -1,5 +1,19 @@
 # mgrspy Changelog
 
+## 0.3.1
+
+2020-01-07
+
+### Added
+
+- Switched projection transformations (and dependency) from `gdal` to `pyproj` package
+- Bulk test of 1200+ populated places from Natural Earth project
+- Debug logging to test suite
+
+### Fixed
+
+- Projection errors with GDAL's OSR against PROJ v6+ for projection axis
+
 ## 0.3.0
 
 2019-10-22
