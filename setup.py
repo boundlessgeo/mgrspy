@@ -9,8 +9,8 @@ with codecs.open('README', encoding='utf-8') as f:
 
 setup(
     name='mgrspy',
-    version='0.3.0',
-    install_requires=['GDAL>=1.10.0', 'future'],
+    version='0.3.1',
+    install_requires=['pyproj>=2.2', 'future'],
     author='Planet Federal',
     author_email='info@federal.planet.com',
     description='Convert WGS84 coordinates to MGRS and back',
