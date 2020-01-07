@@ -27,6 +27,7 @@ __revision__ = '$Format:%H$'
 
 
 import os
+import sys
 import re
 import math
 import itertools
@@ -115,9 +116,11 @@ def toMgrs(latitude, longitude, precision=5):
     """
 
     # To avoid precision issues, which appear when using more than
-    # 6 decimal places
-    latitude = round(latitude, 6)
-    longitude = round(longitude, 6)
+    # 9 decimal places
+    # This may no longer be an issue for Python >= 3
+    if sys.version_info.major < 3:
+        latitude = round(latitude, 9)
+        longitude = round(longitude, 9)
 
     if math.fabs(latitude) > 90:
         raise MgrsException(
