@@ -23,9 +23,16 @@ __copyright__ = '(C) 2019 Planet Inc, https://planet.com'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+import os
 import unittest
+import logging
 
 from mgrspy import mgrs
+
+LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'INFO').upper()
+FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
+logging.basicConfig(level=LOG_LEVEL, format=FORMAT)
+log = logging.getLogger(__name__)
 
 
 class UtilsTest(unittest.TestCase):

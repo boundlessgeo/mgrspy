@@ -23,14 +23,24 @@ __copyright__ = '(C) 2019 Planet Inc, https://planet.com'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+import os
 import unittest
+import logging
 
 from mgrspy import mgrs
+
+LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'INFO').upper()
+FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
+logging.basicConfig(level=LOG_LEVEL, format=FORMAT)
+log = logging.getLogger(__name__)
 
 
 class MgrsTest(unittest.TestCase):
 
-    def testSouthPoleCoordinates(self):
+    def setUp(self):
+        log.debug('\n\n\n--------------- {0}'.format(self.id()))
+
+    def testNorthPoleCoordinates(self):
         self.assertEqual(mgrs.toMgrs(86.598, -156.507), '  YYL4939146492')
 
         lat, lon = mgrs.toWgs('  YYL4939146492')
@@ -45,7 +55,7 @@ class MgrsTest(unittest.TestCase):
         self.assertAlmostEqual(lat, 86.59800323153932)
         self.assertAlmostEqual(lon, -156.50695504226658)
 
-    def testNorthPoleCoordinates(self):
+    def testSouthPoleCoordinates(self):
         self.assertEqual(mgrs.toMgrs(-88.52, -66.49), '  AYN4931665550')
 
         lat, lon = mgrs.toWgs('  AYN4931665550')
