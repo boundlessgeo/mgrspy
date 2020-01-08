@@ -33,7 +33,12 @@ import math
 import itertools
 import logging
 
-from pyproj import Transformer, CRS
+try:
+    from pyproj import Transformer, CRS
+    PYPROJ = 2
+except ImportError:
+    from pyproj import Proj, transform
+    PYPROJ = 1
 
 LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'WARNING').upper()
 FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
@@ -100,9 +105,41 @@ class MgrsException(Exception):
     pass
 
 
-def _log_crs(crs):
-    log.debug('proj epsg: {}'.format(crs.to_epsg()))
-    log.debug('proj:\n{}'.format(crs.to_wkt(pretty=True)))
+def _log_proj_crs(proj_crs, proj_desc='', espg=''):
+    if proj_desc:
+        proj_desc = '{0} '.format(str(proj_desc))
+    if espg:
+        espg = 'espg:{0} '.format(str(espg))
+    definition = ''
+    if PYPROJ == 1:
+        definition = proj_crs.definition_string()
+    elif PYPROJ == 2:
+        definition = proj_crs.to_wkt(pretty=True)
+    log.debug('{0}proj: {1}{2}{3}'.format(
+        proj_desc, espg, os.linesep, definition))
+
+
+def _transform(x1, y1, epsg_src, epsg_dst, polar=False):
+    if PYPROJ == 1:
+        proj_src = Proj(init='epsg:{0}'.format(epsg_src))
+        _log_proj_crs(proj_src, proj_desc='src', espg=epsg_src)
+        proj_dest = Proj(init='epsg:{0}'.format(epsg_dst))
+        _log_proj_crs(proj_dest, proj_desc='dst', espg=epsg_dst)
+        x2, y2 = transform(proj_src, proj_dest, x1, y1)
+    elif PYPROJ == 2:
+        crs_src = CRS.from_epsg(epsg_src)
+        _log_proj_crs(crs_src, proj_desc='src', espg=epsg_src)
+        crs_dst = CRS.from_epsg(epsg_dst)
+        _log_proj_crs(crs_dst, proj_desc='dst', espg=epsg_dst)
+        ct = Transformer.from_crs(crs_src, crs_dst, always_xy=(not polar))
+        if polar:
+            y2, x2 = ct.transform(y1, x1)
+        else:
+            x2, y2 = ct.transform(x1, y1)
+    else:
+        raise MgrsException('pyproj version unsupported')
+
+    return x2, y2
 
 
 def toMgrs(latitude, longitude, precision=5):
@@ -134,17 +171,8 @@ def toMgrs(latitude, longitude, precision=5):
         raise MgrsException('The precision must be between 0 and 5 inclusive.')
 
     hemisphere, zone, epsg = _epsgForWgs(latitude, longitude)
-    utm = (zone != 61)
 
-    crs_src = CRS.from_epsg(4326)
-    _log_crs(crs_src)
-    crs_dst = CRS.from_epsg(epsg)
-    _log_crs(crs_dst)
-    ct = Transformer.from_crs(crs_src, crs_dst, always_xy=utm)
-    if utm:
-        x, y = ct.transform(longitude, latitude)
-    else:
-        y, x = ct.transform(latitude, longitude)
+    x, y = _transform(longitude, latitude, 4326, epsg, polar=(zone == 61))
 
     if (latitude < -80) or (latitude > 84):
         # Convert to UPS
@@ -177,15 +205,8 @@ def toWgs(mgrs):
 
     epsg = _epsgForUtm(zone, hemisphere)
 
-    crs_src = CRS.from_epsg(epsg)
-    _log_crs(crs_src)
-    crs_dst = CRS.from_epsg(4326)
-    _log_crs(crs_dst)
-    ct = Transformer.from_crs(crs_src, crs_dst, always_xy=utm)
-    if utm:
-        longitude, latitude = ct.transform(easting, northing)
-    else:
-        latitude, longitude = ct.transform(northing, easting)
+    longitude, latitude = \
+        _transform(easting, northing, epsg, 4326, polar=(not utm))
 
     # Note y, x axis order for output
     log.debug('lat: {0}, lon: {1}'.format(latitude, longitude))
