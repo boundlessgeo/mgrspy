@@ -187,7 +187,7 @@ def toWgs(mgrs):
     else:
         latitude, longitude = ct.transform(northing, easting)
 
-    # Note static x, y axis order for output
+    # Note y, x axis order for output
     log.debug('lat: {0}, lon: {1}'.format(latitude, longitude))
 
     return latitude, longitude
