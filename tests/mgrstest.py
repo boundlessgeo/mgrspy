@@ -42,7 +42,11 @@ class MgrsTest(unittest.TestCase):
     def setUpClass(cls):
         if mgrs.HAVE_OSR:
             import osgeo
-            log.warning('Using osgeo.osr {0}'.format(osgeo.__version__))
+            log.warning('Using osgeo.osr {0} with PROJ {1}.{2}.x'.format(
+                osgeo.__version__,
+                mgrs.osr.GetPROJVersionMajor(),
+                mgrs.osr.GetPROJVersionMinor()
+            ))
         elif mgrs.PYPROJ_VER != 0:
             import pyproj
             pyproj_ver = pyproj.__version__
