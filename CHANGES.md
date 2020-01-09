@@ -2,17 +2,21 @@
 
 ## 0.3.1
 
-2020-01-07
+2020-01-09
 
 ### Added
 
-- Switched projection transformations (and dependency) from `gdal` to `pyproj` package
+- Projection transformation support for `pyproj` package (1.9.5+ required)
+- **Note:** `pyproj` versions 2.0.x thru 2.1.x may cause errors (1.9.6 or 2.2.0+ recommended))
+- Switched package dependency for projection transformations from `gdal` (used as `osgeo.osr`) to `pyproj`
+- If found, `osgeo.osr` is _still preferred_ unless `MGRSPY_USE_PROJ` environment variable is set
 - Bulk test of 1200+ populated places from Natural Earth project
 - Debug logging to test suite
 
 ### Fixed
 
-- Projection errors with GDAL's OSR against PROJ v6+ for projection axis
+- Projection transformation errors due to PROJ v6+ axis ordering changes
+- See: https://trac.osgeo.org/gdal/wiki/rfc73_proj6_wkt2_srsbarn#Axisorderissues
 
 ## 0.3.0
 
