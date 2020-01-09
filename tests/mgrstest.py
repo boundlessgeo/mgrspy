@@ -122,7 +122,7 @@ class MgrsTest(unittest.TestCase):
         self.assertAlmostEqual(lon, -157.91612940829197)
 
     def testPopulatedPlaces(self):
-        if os.environ.get('MGRS_TEST_PLACES', None) is None:
+        if os.environ.get('MGRSPY_TEST_PLACES', None) is None:
             return
 
         # Populated places from Natural Earth project (~2017, 1200+ places)
