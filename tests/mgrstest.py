@@ -140,7 +140,7 @@ class MgrsTest(unittest.TestCase):
 
     def testPopulatedPlaces(self):
         if os.environ.get('MGRSPY_TEST_PLACES', None) is None:
-            return
+            self.skipTest('MGRSPY_TEST_PLACES env var not set')
 
         # Populated places from Natural Earth project (~2017, 1200+ places)
         with open('populated-places.csv') as populated_places:
