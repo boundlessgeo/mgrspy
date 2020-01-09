@@ -33,12 +33,27 @@ import math
 import itertools
 import logging
 
-try:
-    from pyproj import Transformer, CRS
-    PYPROJ = 2
-except ImportError:
-    from pyproj import Proj, transform
-    PYPROJ = 1
+HAVE_OSR = False
+# Force using proj for transformations by setting MGRSPY_USE_PROJ env var
+if os.environ.get('MGRSPY_USE_PROJ', None) is None:
+    try:
+        from osgeo import osr
+        HAVE_OSR = True
+    except ImportError:
+        pass
+
+PYPROJ_VER = 0
+if not HAVE_OSR:
+    try:
+        from pyproj import Transformer, CRS, __version__ as pyproj_ver
+        PYPROJ_VER = 2
+        if float(pyproj_ver[:3]) < 2.2:
+            raise Exception('Unsupported pyproj version (need >= 2.2)')
+    except ImportError:
+        from pyproj import Proj, transform, __version__ as pyproj_ver
+        if float(pyproj_ver[:3]) < 1.9 or int(pyproj_ver[4]) < 5:
+            raise Exception('Unsupported pyproj version (need >= 1.9.5)')
+        PYPROJ_VER = 1
 
 LOG_LEVEL = os.environ.get('PYTHON_LOG_LEVEL', 'WARNING').upper()
 FORMAT = "%(levelname)s [%(name)s:%(lineno)s  %(funcName)s()] %(message)s"
@@ -111,22 +126,24 @@ def _log_proj_crs(proj_crs, proj_desc='', espg=''):
     if espg:
         espg = 'espg:{0} '.format(str(espg))
     definition = ''
-    if PYPROJ == 1:
+    if HAVE_OSR:
+        definition = proj_crs.ExportToPrettyWkt()
+    if PYPROJ_VER == 1:
         definition = proj_crs.definition_string()
-    elif PYPROJ == 2:
+    elif PYPROJ_VER == 2:
         definition = proj_crs.to_wkt(pretty=True)
     log.debug('{0}proj: {1}{2}{3}'.format(
         proj_desc, espg, os.linesep, definition))
 
 
-def _transform(x1, y1, epsg_src, epsg_dst, polar=False):
-    if PYPROJ == 1:
+def _transform_proj(x1, y1, epsg_src, epsg_dst, polar=False):
+    if PYPROJ_VER == 1:
         proj_src = Proj(init='epsg:{0}'.format(epsg_src))
         _log_proj_crs(proj_src, proj_desc='src', espg=epsg_src)
-        proj_dest = Proj(init='epsg:{0}'.format(epsg_dst))
-        _log_proj_crs(proj_dest, proj_desc='dst', espg=epsg_dst)
-        x2, y2 = transform(proj_src, proj_dest, x1, y1)
-    elif PYPROJ == 2:
+        proj_dst = Proj(init='epsg:{0}'.format(epsg_dst))
+        _log_proj_crs(proj_dst, proj_desc='dst', espg=epsg_dst)
+        x2, y2 = transform(proj_src, proj_dst, x1, y1)
+    elif PYPROJ_VER == 2:
         crs_src = CRS.from_epsg(epsg_src)
         _log_proj_crs(crs_src, proj_desc='src', espg=epsg_src)
         crs_dst = CRS.from_epsg(epsg_dst)
@@ -140,6 +157,34 @@ def _transform(x1, y1, epsg_src, epsg_dst, polar=False):
         raise MgrsException('pyproj version unsupported')
 
     return x2, y2
+
+
+def _transform_osr(x1, y1, epsg_src, epsg_dst, polar=False):
+    src = osr.SpatialReference()
+    if not polar and hasattr(src, 'SetAxisMappingStrategy'):
+        src.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+    src.ImportFromEPSG(epsg_src)
+    _log_proj_crs(src, proj_desc='src', espg=epsg_src)
+    dst = osr.SpatialReference()
+    if not polar and hasattr(dst, 'SetAxisMappingStrategy'):
+        dst.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+    dst.ImportFromEPSG(epsg_dst)
+    _log_proj_crs(dst, proj_desc='dst', espg=epsg_dst)
+    ct = osr.CoordinateTransformation(src, dst)
+    if polar and hasattr(dst, 'SetAxisMappingStrategy'):
+        # only supported with osgeo.osr v3.0.0+
+        y2, x2, _ = ct.TransformPoint(y1, x1)
+    else:
+        x2, y2, _ = ct.TransformPoint(x1, y1)
+
+    return x2, y2
+
+
+def _transform(x1, y1, epsg_src, epsg_dst, polar=False):
+    if HAVE_OSR:
+        return _transform_osr(x1, y1, epsg_src, epsg_dst, polar=polar)
+    else:
+        return _transform_proj(x1, y1, epsg_src, epsg_dst, polar=polar)
 
 
 def toMgrs(latitude, longitude, precision=5):
