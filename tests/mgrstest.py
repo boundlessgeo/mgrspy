@@ -42,18 +42,26 @@ class MgrsTest(unittest.TestCase):
     def setUpClass(cls):
         if mgrs.HAVE_OSR:
             import osgeo
-            log.warning('Using osgeo.osr {0} with PROJ {1}.{2}.x'.format(
+            pyproj_ver = '< 6'
+            if hasattr(mgrs.osr, 'GetPROJVersionMajor'):
+                pyproj_ver = '{0}.{1}'.format(mgrs.osr.GetPROJVersionMajor(),
+                                              mgrs.osr.GetPROJVersionMinor())
+            log.warning('Using osgeo.osr {0} with PROJ {1}.x'.format(
                 osgeo.__version__,
-                mgrs.osr.GetPROJVersionMajor(),
-                mgrs.osr.GetPROJVersionMinor()
+                pyproj_ver
             ))
         elif mgrs.PYPROJ_VER != 0:
             import pyproj
             pyproj_ver = pyproj.__version__
+            proj_ver = pyproj.proj_version_str
+            if proj_ver.startswith('0.'):
+                proj_ver = proj_ver[2:]
             if mgrs.PYPROJ_VER == 2:
-                log.warning('Using pyproj v2.2.0+: {0}'.format(pyproj_ver))
+                log.warning('Using pyproj v2.2.0+: {0} with PROJ {1}'.format(
+                    pyproj_ver, proj_ver))
             elif mgrs.PYPROJ_VER == 1:
-                log.warning('Using pyproj v1.9.5+: {0}'.format(pyproj_ver))
+                log.warning('Using pyproj v1.9.5+: {0} with PROJ {1}'.format(
+                    pyproj_ver, proj_ver))
 
     def setUp(self):
         log.debug('\n\n\n--------------- {0}'.format(self.id()))
