@@ -38,6 +38,19 @@ log = logging.getLogger(__name__)
 
 class MgrsTest(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        if mgrs.HAVE_OSR:
+            import osgeo
+            log.warning('Using osgeo.osr {0}'.format(osgeo.__version__))
+        elif mgrs.PYPROJ_VER != 0:
+            import pyproj
+            pyproj_ver = pyproj.__version__
+            if mgrs.PYPROJ_VER == 2:
+                log.warning('Using pyproj v2.2.0+: {0}'.format(pyproj_ver))
+            elif mgrs.PYPROJ_VER == 1:
+                log.warning('Using pyproj v1.9.5+: {0}'.format(pyproj_ver))
+
     def setUp(self):
         log.debug('\n\n\n--------------- {0}'.format(self.id()))
 
