@@ -144,6 +144,8 @@ def _transform_proj(x1, y1, epsg_src, epsg_dst, polar=False):
         _log_proj_crs(proj_dst, proj_desc='dst', espg=epsg_dst)
         x2, y2 = transform(proj_src, proj_dst, x1, y1)
     elif PYPROJ_VER == 2:
+        # With PROJ 6+ input axis ordering needs honored per projection, even
+        #   though always_xy should fix it (doesn't seem to work for UPS)
         crs_src = CRS.from_epsg(epsg_src)
         _log_proj_crs(crs_src, proj_desc='src', espg=epsg_src)
         crs_dst = CRS.from_epsg(epsg_dst)
@@ -161,17 +163,24 @@ def _transform_proj(x1, y1, epsg_src, epsg_dst, polar=False):
 
 def _transform_osr(x1, y1, epsg_src, epsg_dst, polar=False):
     src = osr.SpatialReference()
-    if not polar and hasattr(src, 'SetAxisMappingStrategy'):
+    # Check if we are using osgeo.osr linked against PROJ 6+
+    # If so, input axis ordering needs honored per projection, even though
+    #   OAMS_TRADITIONAL_GIS_ORDER should fix it (doesn't seem to work for UPS)
+    # See GDAL/OGR migration guide for 2.4 to 3.0
+    # https://github.com/OSGeo/gdal/blob/master/gdal/MIGRATION_GUIDE.TXT and
+    # https://trac.osgeo.org/gdal/wiki/rfc73_proj6_wkt2_srsbarn#Axisorderissues
+    osr_proj6 = hasattr(src, 'SetAxisMappingStrategy')
+    if not polar and osr_proj6:
         src.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
     src.ImportFromEPSG(epsg_src)
     _log_proj_crs(src, proj_desc='src', espg=epsg_src)
     dst = osr.SpatialReference()
-    if not polar and hasattr(dst, 'SetAxisMappingStrategy'):
+    if not polar and osr_proj6:
         dst.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
     dst.ImportFromEPSG(epsg_dst)
     _log_proj_crs(dst, proj_desc='dst', espg=epsg_dst)
     ct = osr.CoordinateTransformation(src, dst)
-    if polar and hasattr(dst, 'SetAxisMappingStrategy'):
+    if polar and osr_proj6:
         # only supported with osgeo.osr v3.0.0+
         y2, x2, _ = ct.TransformPoint(y1, x1)
     else:
